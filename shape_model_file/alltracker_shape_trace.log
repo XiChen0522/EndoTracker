@@ -1,0 +1,153 @@
+
+======================================================================
+[SHAPE] forward_sliding
+  images: (1, 287, 3, 1024, 576)
+  S=16, stride=8, iters=4
+  after pad: H_pad=1024, W_pad=576, H8=128, W8=72
+  C=256, C2=128, no_split=False, T(padded)=288
+  fmap_anchor: (1, 256, 128, 72)
+
+  --- window ii=0, frames=0~15 ---
+
+======================================================================
+[forward_window] B=1, S=16, C=256, H8=128, W8=72, iters=4
+  fmap1 (anchor*S): (16, 256, 128, 72)  = (B*S=16, C=256, H8=128, W8=72)
+  fmap2 (targets):  (16, 256, 128, 72)
+  CorrBlock: levels=5, radius=4, corr_ch=405
+  coords1 (grid): (16, 2, 128, 72)
+  flowfeat: (16, 128, 128, 72), ctxfeat: (16, 128, 128, 72)
+  time_emb: (1, 16, 128, 1, 1)
+  ctxfeat (+time_emb): (16, 128, 128, 72)
+
+  --- iter 0/4 ---
+  corr: (16, 405, 128, 72)
+  motion: (16, 2, 128, 72)  (pdim=2)
+
+  >>> update_block Input:
+      flowfeat:  (16, 128, 128, 72)
+      ctxfeat:   (16, 128, 128, 72)
+      visconfs8: (16, 2, 128, 72)
+      corr:      (16, 405, 128, 72)
+      motion:    (16, 2, 128, 72)
+      S=16
+
+  [RelUpdateBlock] BS=16, C=128, H=128, W=72, B=1, S=16
+    [MotionEncoder] flow: (16, 2, 128, 72), corr: (16, 405, 128, 72)
+      cor: (16, 192, 128, 72), flo: (16, 64, 128, 72)
+      output: (16, 128, 128, 72) = conv_out(126) + flow(2)
+    motion_features: (16, 128, 128, 72)
+    compressor input: (16, 386, 128, 72) = feat(128)+ctx(128)+mot(128)+vis(2)
+    after compressor: (16, 128, 128, 72)
+    [CNBlock1d Temporal attn]
+      Input: (16,128,128,72) = (B*S, C, H, W)
+      rearrange -> (9216, 128, 16) = (B*H*W, C, S)
+      permute -> (9216, 16, 128) for attn
+      Output: (16, 128, 128, 72) = (B*S, C, H, W)
+    after refine[0](CNBlock1d): (16, 128, 128, 72)
+    [CNBlock2d Spatialconv] Input: (16, 128, 128, 72) (B*S,C,H,W) 7x7 depthwise
+    after refine[1](CNBlock2d): (16, 128, 128, 72)
+    [CNBlock1d Temporal attn]
+      Input: (16,128,128,72) = (B*S, C, H, W)
+      rearrange -> (9216, 128, 16) = (B*H*W, C, S)
+      permute -> (9216, 16, 128) for attn
+      Output: (16, 128, 128, 72) = (B*S, C, H, W)
+    after refine[2](CNBlock1d): (16, 128, 128, 72)
+    [CNBlock2d Spatialconv] Input: (16, 128, 128, 72) (B*S,C,H,W) 7x7 depthwise
+    after refine[3](CNBlock2d): (16, 128, 128, 72)
+    [CNBlock1d Temporal attn]
+      Input: (16,128,128,72) = (B*S, C, H, W)
+      rearrange -> (9216, 128, 16) = (B*H*W, C, S)
+      permute -> (9216, 16, 128) for attn
+      Output: (16, 128, 128, 72) = (B*S, C, H, W)
+    after refine[4](CNBlock1d): (16, 128, 128, 72)
+    [CNBlock2d Spatialconv] Input: (16, 128, 128, 72) (B*S,C,H,W) 7x7 depthwise
+    after refine[5](CNBlock2d): (16, 128, 128, 72)
+    after final_conv: (16, 128, 128, 72)
+  <<< update_block Output: flowfeat=(16, 128, 128, 72)
+  flow_update:    (16, 2, 128, 72)
+  visconf_update: (16, 2, 128, 72)
+  weight_update:  (16, 576, 128, 72)
+  flow_up (8x):   (16, 2, 1024, 576)
+
+  --- iter 1/4 ---
+  corr: (16, 405, 128, 72)
+  motion: (16, 2, 128, 72)  (pdim=2)
+  (iter 1 same shapes, skipped)
+
+  --- iter 2/4 ---
+  corr: (16, 405, 128, 72)
+  motion: (16, 2, 128, 72)  (pdim=2)
+  (iter 2 same shapes, skipped)
+
+  --- iter 3/4 ---
+  corr: (16, 405, 128, 72)
+  motion: (16, 2, 128, 72)  (pdim=2)
+  (iter 3 same shapes, skipped)
+
+  --- window ii=1, frames=8~23 ---
+
+  --- window ii=2, frames=16~31 ---
+
+  --- window ii=3, frames=24~39 ---
+
+  --- window ii=4, frames=32~47 ---
+
+  --- window ii=5, frames=40~55 ---
+
+  --- window ii=6, frames=48~63 ---
+
+  --- window ii=7, frames=56~71 ---
+
+  --- window ii=8, frames=64~79 ---
+
+  --- window ii=9, frames=72~87 ---
+
+  --- window ii=10, frames=80~95 ---
+
+  --- window ii=11, frames=88~103 ---
+
+  --- window ii=12, frames=96~111 ---
+
+  --- window ii=13, frames=104~119 ---
+
+  --- window ii=14, frames=112~127 ---
+
+  --- window ii=15, frames=120~135 ---
+
+  --- window ii=16, frames=128~143 ---
+
+  --- window ii=17, frames=136~151 ---
+
+  --- window ii=18, frames=144~159 ---
+
+  --- window ii=19, frames=152~167 ---
+
+  --- window ii=20, frames=160~175 ---
+
+  --- window ii=21, frames=168~183 ---
+
+  --- window ii=22, frames=176~191 ---
+
+  --- window ii=23, frames=184~199 ---
+
+  --- window ii=24, frames=192~207 ---
+
+  --- window ii=25, frames=200~215 ---
+
+  --- window ii=26, frames=208~223 ---
+
+  --- window ii=27, frames=216~231 ---
+
+  --- window ii=28, frames=224~239 ---
+
+  --- window ii=29, frames=232~247 ---
+
+  --- window ii=30, frames=240~255 ---
+
+  --- window ii=31, frames=248~263 ---
+
+  --- window ii=32, frames=256~271 ---
+
+  --- window ii=33, frames=264~279 ---
+
+  --- window ii=34, frames=272~287 ---
