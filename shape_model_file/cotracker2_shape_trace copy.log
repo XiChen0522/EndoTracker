@@ -1,0 +1,79 @@
+
+======================================================================
+[SHAPE] CoTracker2.forward()
+  video: (1, 50, 3, 384, 512)
+  queries: (1, 100, 3)
+  S=8, stride=4, iters=6
+  latent_dim=128, input_dim=456
+  num_virtual_tracks=64
+  fmaps (after fnet): (1, 56, 128, 96, 128)  = (B, T_pad, latent_dim=128, H4=96, W4=128)
+  track_feat (repeated S): (1, 8, 100, 128)  = (B, S, N, latent_dim)
+  coords_init: (1, 8, 100, 2)  = (B, S, N, 2)
+  num_windows=12, step=4
+
+======================================================================
+[forward_window] B=1, S_init=8, S=8, N=100, iters=6
+  fmaps: (1, 8, 128, 96, 128)  = (B, S, C=128, H4, W4)
+  coords: (1, 8, 100, 2)  = (B, S, N, 2)
+  track_feat: (1, 8, 100, 128)  = (B, S, N, C)
+  vis: (1, 8, 100, 1)
+  track_mask: (1, 8, 100, 1)
+  attention_mask: (1, 8, 100)
+  track_mask_vis: (100, 8, 2)  = (B*N, S, 2)
+  sampled_pos_emb: (100, 1, 456)  = (B*N, 1, input_dim=456)
+  time_emb: (1, 8, 456)
+
+  --- iter 0/6 (first iter, full detail) ---
+  fcorrs: (100, 8, 196)  = (B*N=100, S=8, LRR)
+  flows: (100, 8, 2)  = (B*N, S, 2)
+  flow_emb: (100, 8, 130)  = (B*N, S, 2*64*2+2=130)
+  track_feat_: (100, 8, 128)  = (B*N, S, latent_dim=128)
+  track_mask_vis: (100, 8, 2)  = (B*N, S, 2)
+
+  Token construction (the 456-dim breakdown):
+    flow_emb:      130  (2d embedding of flow)
+    fcorrs:        196  (4 levels * (2*3+1)^2 = 196)
+    track_feat_:   128  (latent_dim)
+    track_mask_vis:2  (mask + vis)
+    total:         456  = input_dim
+  transformer_input: (100, 8, 456)  = (B*N, S, input_dim)
+  x (after +pos+time): (1, 100, 8, 456)  = (B, N, S, input_dim)
+
+  >>> updateformer input: (1, 100, 8, 456)
+      attention_mask: (8, 100)  = (B*S, N)
+
+  [EfficientUpdateFormer]
+    input_tensor: (1, 100, 8, 456)  = (B, N, T, input_dim)
+    after input_transform: (1, 100, 8, 384)  = (B, N, T, hidden=384)
+    + virtual_tracks(64): (1, 164, 8, 384)  = (B, N+K=164, T, hidden)
+
+    --- Transformer block 0 (full detail) ---
+    time_attn input: (164, 8, 384)  = (B*(N+K)=164, T=8, hidden)
+    time_attn output: (1, 164, 8, 384)  = (B, N+K, T, hidden)
+
+    space_attn (via virtual tokens):
+      space_tokens: (8, 164, 384)  = (B*T=8, N+K=164, hidden)
+      point_tokens: (8, 100, 384)  = (B*T, N_real=100, hidden)
+      virtual_tokens: (8, 64, 384)  = (B*T, K=64, hidden)
+      flow: virtual <- cross_attn(point) -> self_attn -> point <- cross_attn(virtual)
+    (blocks 1~5: same shapes, interleaved time+space)
+
+    after removing virtual: (1, 100, 8, 384)  = (B, N_real, T, hidden)
+    flow_head output: (1, 100, 8, 130)  = (B, N, T, output_dim=130)
+  <<< updateformer output (delta): (1, 100, 8, 130)  = (B, N, S, latent_dim+2=130)
+  delta_coords: (1, 8, 100, 2)  = (B, S, N, 2)
+  delta_feats: (800, 128)  -> track_feat_updater -> residual update
+  track_feat (updated): (1, 8, 100, 128)  = (B, S, N, C)
+
+  --- iter 1/6 (same shapes, skipped) ---
+
+  --- iter 2/6 (same shapes, skipped) ---
+
+  --- iter 3/6 (same shapes, skipped) ---
+
+  --- iter 4/6 (same shapes, skipped) ---
+
+  --- iter 5/6 (same shapes, skipped) ---
+
+  vis_pred: (1, 8, 100)  = (B, S, N)
+  coord_preds[-1]: (1, 8, 100, 2)  = (B, S, N, 2)
