@@ -1,0 +1,248 @@
+
+======================================================================
+[SHAPE] CoTrackerThreeOnline.forward()
+  video: (1, 16, 3, 384, 512)
+  queries: (1, 100, 3)
+  stride=4, corr_levels=4, corr_radius=3
+  latent_dim=128, input_dim=1110
+  num_virtual_tracks=64
+  is_online=True
+  S=16, step=8, T_pad=16
+  H4=96, W4=128
+  fmaps (after L2 norm): (1, 16, 128, 96, 128)  = (B, T_pad, latent_dim, H4, W4)
+
+  Feature pyramid (4 levels):
+    level 0: (1, 16, 128, 96, 128)
+    level 1: (1, 16, 128, 48, 64)
+    level 2: (1, 16, 128, 24, 32)
+    level 3: (1, 16, 128, 12, 16)
+
+  Track features (per level):
+    level 0: feat=(1, 16, 100, 128), support=(1, 1, 49, 100, 128)
+    level 1: feat=(1, 16, 100, 128), support=(1, 1, 49, 100, 128)
+    level 2: feat=(1, 16, 100, 128), support=(1, 1, 49, 100, 128)
+    level 3: feat=(1, 16, 100, 128), support=(1, 1, 49, 100, 128)
+
+  num_windows=1, step=8
+  coords_init: (1, 16, 100, 2)
+
+  --- window ind=0, frames=0~15 ---
+
+======================================================================
+[forward_window] B=1, S=16, N=100, iters=6
+  fmaps_pyramid levels: [(1, 16, 128, 96, 128), (1, 16, 128, 48, 64), (1, 16, 128, 24, 32), (1, 16, 128, 12, 16)]
+  coords: (1, 16, 100, 2)  = (B, S, N, 2)
+  track_feat_support_pyramid: [(1, 1, 49, 100, 128), (1, 1, 49, 100, 128), (1, 1, 49, 100, 128), (1, 1, 49, 100, 128)]
+  vis: (1, 16, 100, 1), conf: (1, 16, 100, 1)
+  attention_mask: (1, 16, 100)
+  r (support size): 7, corr_radius=3
+
+  --- iter 0/6 (first iter, full detail) ---
+  Correlation (level 0):
+    corr_feat: (1, 16, 100, 7, 7, 128)  = (B, S, N, 7, 7, latent_dim)
+    track_feat_support: (1, 100, 7, 7, 128)  = (B, N, 7, 7, latent_dim)
+    corr_volume: (1, 16, 100, 7, 7, 7, 7)  = (B, S, N, 7, 7, 7, 7)
+    reshape: (1600, 2401) -> corr_mlp -> corr_emb: (1600, 256)
+    corr_embs (all levels): (1, 16, 100, 1024)  = (B, S, N, 1024)
+    rel_pos_emb: (1, 16, 100, 84)
+
+  Token construction (1110-dim):
+    vis:         1
+    conf:        1
+    corr_embs:   1024  (4 levels x 256)
+    rel_pos_emb: 84
+    total:       1110
+  x (before time_emb): (100, 16, 1110)  = (B*N=100, S=16, input_dim)
+  x (after +time_emb): (1, 100, 16, 1110)  = (B, N, S, input_dim)
+
+  >>> updateformer input: (1, 100, 16, 1110)
+  <<< updateformer output: (1, 100, 16, 4)  = (B, N, S, 4)
+  delta_coords: (1, 16, 100, 2)  = (B, S, N, 2)
+  delta_vis: (1, 16, 100, 1)  = (B, S, N, 1)
+  delta_conf: (1, 16, 100, 1)  = (B, S, N, 1)
+  updated coords (pixels): (1, 16, 100, 2)
+
+  --- iter 1/6 (same shapes, skipped) ---
+
+  --- iter 2/6 (same shapes, skipped) ---
+
+  --- iter 3/6 (same shapes, skipped) ---
+
+  --- iter 4/6 (same shapes, skipped) ---
+
+  --- iter 5/6 (same shapes, skipped) ---
+
+  Final output:
+    coords_predicted: (1, 16, 100, 2)
+    vis_predicted: (1, 16, 100)
+    conf_predicted: (1, 16, 100)
+
+======================================================================
+[SHAPE] CoTrackerThreeOnline.forward()
+  video: (1, 16, 3, 384, 512)
+  queries: (1, 100, 3)
+  stride=4, corr_levels=4, corr_radius=3
+  latent_dim=128, input_dim=1110
+  num_virtual_tracks=64
+  is_online=True
+  S=16, step=8, T_pad=16
+  H4=96, W4=128
+  fmaps (after L2 norm): (1, 16, 128, 96, 128)  = (B, T_pad, latent_dim, H4, W4)
+
+  Feature pyramid (4 levels):
+    level 0: (1, 16, 128, 96, 128)
+    level 1: (1, 16, 128, 48, 64)
+    level 2: (1, 16, 128, 24, 32)
+    level 3: (1, 16, 128, 12, 16)
+
+  Track features (per level):
+    level 0: feat=(1, 16, 100, 128), support=(1, 1, 49, 100, 128)
+    level 1: feat=(1, 16, 100, 128), support=(1, 1, 49, 100, 128)
+    level 2: feat=(1, 16, 100, 128), support=(1, 1, 49, 100, 128)
+    level 3: feat=(1, 16, 100, 128), support=(1, 1, 49, 100, 128)
+
+  num_windows=1, step=8
+  coords_init: (1, 16, 100, 2)
+
+  --- window ind=8, frames=8~23 ---
+
+  Final output:
+    coords_predicted: (1, 24, 100, 2)
+    vis_predicted: (1, 24, 100)
+    conf_predicted: (1, 24, 100)
+
+======================================================================
+[SHAPE] CoTrackerThreeOnline.forward()
+  video: (1, 16, 3, 384, 512)
+  queries: (1, 100, 3)
+  stride=4, corr_levels=4, corr_radius=3
+  latent_dim=128, input_dim=1110
+  num_virtual_tracks=64
+  is_online=True
+  S=16, step=8, T_pad=16
+  H4=96, W4=128
+  fmaps (after L2 norm): (1, 16, 128, 96, 128)  = (B, T_pad, latent_dim, H4, W4)
+
+  Feature pyramid (4 levels):
+    level 0: (1, 16, 128, 96, 128)
+    level 1: (1, 16, 128, 48, 64)
+    level 2: (1, 16, 128, 24, 32)
+    level 3: (1, 16, 128, 12, 16)
+
+  Track features (per level):
+    level 0: feat=(1, 16, 100, 128), support=(1, 1, 49, 100, 128)
+    level 1: feat=(1, 16, 100, 128), support=(1, 1, 49, 100, 128)
+    level 2: feat=(1, 16, 100, 128), support=(1, 1, 49, 100, 128)
+    level 3: feat=(1, 16, 100, 128), support=(1, 1, 49, 100, 128)
+
+  num_windows=1, step=8
+  coords_init: (1, 16, 100, 2)
+
+  --- window ind=16, frames=16~31 ---
+
+  Final output:
+    coords_predicted: (1, 32, 100, 2)
+    vis_predicted: (1, 32, 100)
+    conf_predicted: (1, 32, 100)
+
+======================================================================
+[SHAPE] CoTrackerThreeOnline.forward()
+  video: (1, 16, 3, 384, 512)
+  queries: (1, 100, 3)
+  stride=4, corr_levels=4, corr_radius=3
+  latent_dim=128, input_dim=1110
+  num_virtual_tracks=64
+  is_online=True
+  S=16, step=8, T_pad=16
+  H4=96, W4=128
+  fmaps (after L2 norm): (1, 16, 128, 96, 128)  = (B, T_pad, latent_dim, H4, W4)
+
+  Feature pyramid (4 levels):
+    level 0: (1, 16, 128, 96, 128)
+    level 1: (1, 16, 128, 48, 64)
+    level 2: (1, 16, 128, 24, 32)
+    level 3: (1, 16, 128, 12, 16)
+
+  Track features (per level):
+    level 0: feat=(1, 16, 100, 128), support=(1, 1, 49, 100, 128)
+    level 1: feat=(1, 16, 100, 128), support=(1, 1, 49, 100, 128)
+    level 2: feat=(1, 16, 100, 128), support=(1, 1, 49, 100, 128)
+    level 3: feat=(1, 16, 100, 128), support=(1, 1, 49, 100, 128)
+
+  num_windows=1, step=8
+  coords_init: (1, 16, 100, 2)
+
+  --- window ind=24, frames=24~39 ---
+
+  Final output:
+    coords_predicted: (1, 40, 100, 2)
+    vis_predicted: (1, 40, 100)
+    conf_predicted: (1, 40, 100)
+
+======================================================================
+[SHAPE] CoTrackerThreeOnline.forward()
+  video: (1, 16, 3, 384, 512)
+  queries: (1, 100, 3)
+  stride=4, corr_levels=4, corr_radius=3
+  latent_dim=128, input_dim=1110
+  num_virtual_tracks=64
+  is_online=True
+  S=16, step=8, T_pad=16
+  H4=96, W4=128
+  fmaps (after L2 norm): (1, 16, 128, 96, 128)  = (B, T_pad, latent_dim, H4, W4)
+
+  Feature pyramid (4 levels):
+    level 0: (1, 16, 128, 96, 128)
+    level 1: (1, 16, 128, 48, 64)
+    level 2: (1, 16, 128, 24, 32)
+    level 3: (1, 16, 128, 12, 16)
+
+  Track features (per level):
+    level 0: feat=(1, 16, 100, 128), support=(1, 1, 49, 100, 128)
+    level 1: feat=(1, 16, 100, 128), support=(1, 1, 49, 100, 128)
+    level 2: feat=(1, 16, 100, 128), support=(1, 1, 49, 100, 128)
+    level 3: feat=(1, 16, 100, 128), support=(1, 1, 49, 100, 128)
+
+  num_windows=1, step=8
+  coords_init: (1, 16, 100, 2)
+
+  --- window ind=32, frames=32~47 ---
+
+  Final output:
+    coords_predicted: (1, 48, 100, 2)
+    vis_predicted: (1, 48, 100)
+    conf_predicted: (1, 48, 100)
+
+======================================================================
+[SHAPE] CoTrackerThreeOnline.forward()
+  video: (1, 10, 3, 384, 512)
+  queries: (1, 100, 3)
+  stride=4, corr_levels=4, corr_radius=3
+  latent_dim=128, input_dim=1110
+  num_virtual_tracks=64
+  is_online=True
+  S=16, step=8, T_pad=16
+  H4=96, W4=128
+  fmaps (after L2 norm): (1, 16, 128, 96, 128)  = (B, T_pad, latent_dim, H4, W4)
+
+  Feature pyramid (4 levels):
+    level 0: (1, 16, 128, 96, 128)
+    level 1: (1, 16, 128, 48, 64)
+    level 2: (1, 16, 128, 24, 32)
+    level 3: (1, 16, 128, 12, 16)
+
+  Track features (per level):
+    level 0: feat=(1, 16, 100, 128), support=(1, 1, 49, 100, 128)
+    level 1: feat=(1, 16, 100, 128), support=(1, 1, 49, 100, 128)
+    level 2: feat=(1, 16, 100, 128), support=(1, 1, 49, 100, 128)
+    level 3: feat=(1, 16, 100, 128), support=(1, 1, 49, 100, 128)
+
+  num_windows=1, step=8
+  coords_init: (1, 16, 100, 2)
+
+  --- window ind=40, frames=40~55 ---
+
+  Final output:
+    coords_predicted: (1, 50, 100, 2)
+    vis_predicted: (1, 50, 100)
+    conf_predicted: (1, 50, 100)
