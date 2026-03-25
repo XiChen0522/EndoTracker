@@ -21,6 +21,14 @@
 
   --- iter 0/4 ---
   corr: (16, 405, 128, 72)
+
+  [CorrBlock sampling] coords2: (16, 2, 128, 72)
+    level 0: heatmap (128x72)x(128x72) -> sample 9x9 at coords/1 -> 81 values
+    level 1: heatmap (128x72)x(64x36) -> sample 9x9 at coords/2 -> 81 values
+    level 2: heatmap (128x72)x(32x18) -> sample 9x9 at coords/4 -> 81 values
+    level 3: heatmap (128x72)x(16x9) -> sample 9x9 at coords/8 -> 81 values
+    level 4: heatmap (128x72)x(8x4) -> sample 9x9 at coords/16 -> 81 values
+    concat 5 levels x 81 = 405 -> corr: (16, 405, 128, 72)
   motion: (16, 2, 128, 72)  (pdim=2)
 
   >>> update_block Input:
