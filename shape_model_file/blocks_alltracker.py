@@ -94,12 +94,19 @@ class CorrBlock:
         self.num_levels = corr_levels
         self.radius = corr_radius
         self.corr_pyramid = []
+
+        if _trace_detail:
+            _slog(f"\n    [CorrBlock Init] Building correlation pyramid (levels={corr_levels})")
+            _slog(f"      Input fmap1(Query): {tuple(fmap1.shape)}, fmap2(Targets): {tuple(fmap2.shape)}")
+
         # all pairs correlation
         for i in range(self.num_levels):
             corr = CorrBlock.corr(fmap1, fmap2, 1)
             batch, h1, w1, dim, h2, w2 = corr.shape
             corr = corr.reshape(batch*h1*w1, dim, h2, w2)
             fmap2 = F.interpolate(fmap2, scale_factor=0.5, mode='area')
+            if _trace_detail:   
+                    _slog(f"      Level {i}: corr shape {tuple(corr.shape)}, downsampled fmap2 shape {tuple(fmap2.shape)}")
             # print('corr', corr.shape)
             self.corr_pyramid.append(corr)
 
@@ -107,6 +114,10 @@ class CorrBlock:
         r = self.radius
         coords = coords.permute(0, 2, 3, 1)
         batch, h1, w1, _ = coords.shape
+
+        if _trace_detail:
+            _slog(f"\n    [CorrBlock Call] Sampling correlation pyramid with radius={r}")
+            _slog(f"      Input coords: {tuple(coords.shape)} (B, H, W, 2)")
 
         if dilation is None:
             dilation = torch.ones(batch, 1, h1, w1, device=coords.device)
@@ -124,10 +135,14 @@ class CorrBlock:
             coords_lvl = centroid_lvl + delta_lvl
             corr = bilinear_sampler(corr, coords_lvl)
             corr = corr.view(batch, h1, w1, -1)
+            if _trace_detail:
+                _slog(f"      Level {i}: sampled corr shape {tuple(corr.shape)}")
             out_pyramid.append(corr)
 
         out = torch.cat(out_pyramid, dim=-1)
         out = out.permute(0, 3, 1, 2).contiguous().float()  
+        if _trace_detail:
+            _slog(f"      Output corr shape: {tuple(out.shape)} (B, C, H, W)")
         return out
 
     @staticmethod
